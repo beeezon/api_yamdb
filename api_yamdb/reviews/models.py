@@ -15,13 +15,20 @@ class User(AbstractUser):
     email = models.EmailField(max_length=254, blank=False)
     bio = models.CharField(max_length=150, blank=True)
     role = models.CharField(choices=USER_STATUS, default='user', max_length=10)
-    confirmation_code = models.CharField(max_length=255, null=True, blank=False)
+    confirmation_code = models.CharField(
+        max_length=255, null=True, blank=False
+    )
+    is_active = models.BooleanField(
+        ('active'),
+        default=False,
+    )
 
 
 class Category(models.Model):
-    name=models.CharField(max_length=200)
-    slug=models.SlugField(max_length=50, unique=True)
-    
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=50, unique=True)
+
+
 class Categories(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=20, unique=True)
@@ -47,9 +54,10 @@ class Titles(models.Model):
         null=True,
         related_name='titles')
 
+
 class Genre(models.Model):
-    name=models.CharField(max_length=200)
-    slug=models.SlugField(max_length=50, unique=True)
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=50, unique=True)
 
 
 class Reviews(models.Model):
