@@ -1,7 +1,7 @@
-from reviews.models import User, Reviews, Comment
-from rest_framework import serializers
-from reviews.models import Reviews,Comment
+import datetime as dt
 
+from reviews.models import User, Reviews, Comment, Categories, Genres, Titles
+from rest_framework import serializers
 
 class UsersSerializer(serializers.ModelSerializer):
 
@@ -20,3 +20,39 @@ class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Comment
+        
+class CategoriesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        lookup_field = 'slug'
+        model = Categories
+
+
+class GenresSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        fields = '__all__'
+        lookup_field = 'slug'
+        model = Genres
+
+
+class TitlesSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        slug_field='slug', many=True, queryset=Categories.objects.all()
+    )
+
+    class Meta:
+        fileds = '__all__'
+        lookup_field = 'category'
+        model = Titles
+
+    def validate(self, data):
+        if dt.datetime().year < data.year:
+            raise serializers.ValidationError(
+                '''
+                Путешествия в будущее запрещены!
+                Год создения произведения не может быть позже текущего!
+                '''
+            )
+        return data

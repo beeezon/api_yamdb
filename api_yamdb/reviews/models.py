@@ -1,4 +1,5 @@
 from django.db import models
+
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
@@ -20,6 +21,21 @@ class User(AbstractUser):
 class Category(models.Model):
     name=models.CharField(max_length=200)
     slug=models.SlugField(max_length=50, unique=True)
+    
+class Categories(models.Model):
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=20, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Genres(models.Model):
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=20, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Titles(models.Model):
@@ -61,4 +77,3 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
-
