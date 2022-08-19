@@ -14,6 +14,7 @@ class User(AbstractUser):
     email = models.EmailField(max_length=254, blank=False)
     bio = models.CharField(max_length=150, blank=True)
     role = models.CharField(choices=USER_STATUS, default='user', max_length=10)
+    confirmation_code = models.CharField(max_length=255, null=True, blank=False)
 
 
 class Category(models.Model):
