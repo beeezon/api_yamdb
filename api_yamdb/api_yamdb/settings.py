@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django_filters',
     'api',
     'reviews',
+    #'djoser',
 ]
 
 MIDDLEWARE = [
@@ -106,7 +107,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
-
 # Default auto field is added since Django is complaining about it whilst migrating
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+AUTH_USER_MODEL = 'reviews.User'
