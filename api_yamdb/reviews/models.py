@@ -2,6 +2,11 @@ from django.db import models
 
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
+
+class TokenGenerator(PasswordResetTokenGenerator):
+    pass
 
 
 class User(AbstractUser):
@@ -22,6 +27,7 @@ class User(AbstractUser):
         ('active'),
         default=False,
     )
+    is_verification = models.BooleanField(default=False)
 
 
 class Category(models.Model):

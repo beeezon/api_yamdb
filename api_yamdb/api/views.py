@@ -5,11 +5,14 @@ from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from .permissions import IsAdminOrReadOnly
 
 from .serializers import UsersSerializer, ReviewsSerializer, CommentsSerializer, CategoriesSerializer, GenresSerializer, TitlesSerializer
-
+#send_mail
 
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
+
+    def confirmation_code(self):
+        pass
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
