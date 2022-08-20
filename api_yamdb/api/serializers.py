@@ -1,8 +1,15 @@
+from dataclasses import field
 import datetime as dt
 
 from reviews.models import User, Reviews, Comment, Categories, Genres, Titles
 from rest_framework import serializers
 
+
+class UsersTokenSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        field = 'email ', 'username'
+        model = User
 
 class UsersSerializer(serializers.ModelSerializer):
 
