@@ -20,14 +20,10 @@ class User(AbstractUser):
     email = models.EmailField(max_length=254, blank=False, unique=True)
     bio = models.CharField(max_length=150, blank=True)
     role = models.CharField(choices=USER_STATUS, default='user', max_length=10)
-    confirmation_code = models.CharField(
-        max_length=255, null=True, blank=False
-    )
     is_active = models.BooleanField(
         ('active'),
         default=False,
     )
-    is_verification = models.BooleanField(default=False)
 
 
 class Category(models.Model):
