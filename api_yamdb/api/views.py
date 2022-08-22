@@ -8,18 +8,20 @@ from rest_framework.response import Response
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import UsersTokenSerializer, UsersSerializer, ReviewsSerializer, CommentsSerializer, CategoriesSerializer, GenresSerializer, TitlesSerializer
-#send_mail
+from .serializers import AuthorizationTokenSerializer, UsersSerializer, ReviewsSerializer, CommentsSerializer, CategoriesSerializer, GenresSerializer, TitlesSerializer
 
 
-class UserAPIView(APIView):
-    """"Отправка кода подтверждения."""
+class GetUserAPIView(APIView):
+    """"Отправка кода подтверждения на указанную электронную почту."""
     def post(self, request):
-        serializer = UsersTokenSerializer(data=request.data)
+        serializer = AuthorizationTokenSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            user = get_object_or_404(User, username=serializer.data.get('username'))
+            user = get_object_or_404(
+                User, username=serializer.data.get('username'))
             token_code = default_token_generator.make_token(user)
             send_mail(
                 'код активации',
@@ -28,10 +30,23 @@ class UserAPIView(APIView):
                 [serializer.data.get('email')],
                 fail_silently=False,
             )
-            #serializer.save(confirmation_code=token_code)
             return Response("Письмо успешно отправлено")
         else:
-            return Response("Валидация не прошла")
+            return Response("""Валидация не прошла,
+            возможно такой пользователь уже существует""")
+
+
+class GetWorkingTokenAPIView(TokenObtainPairView):
+    """Генерация оснокного ключа token с проверкой кода из письма."""
+    def post(self, request):
+        user = get_object_or_404(User, username=request.data.get('username'))
+        confirmation_code = request.data.get('confirmation_code')
+        if default_token_generator.check_token(user, confirmation_code):
+            token = RefreshToken.for_user(user)
+            response = {}
+            response['access_token'] = str(token.access_token)
+            return Response(response)
+        return Response('токен не получишь')
 
 
 class UsersViewSet(viewsets.ModelViewSet): #Через джинерики с изменением pk на username
@@ -47,7 +62,8 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 class CommentsViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentsSerializer
-    
+
+
 class CategoriesViewSet(viewsets.ModelViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
