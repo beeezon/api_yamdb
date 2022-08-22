@@ -26,27 +26,30 @@ class GetUserAPIView(APIView):
             send_mail(
                 'код активации',
                 f'Вы получили код авторизации {token_code}',
-                'from@example.com',
+                'admin@django.com',
                 [serializer.data.get('email')],
                 fail_silently=False,
             )
             return Response("Письмо успешно отправлено")
         else:
-            return Response("""Валидация не прошла,
-            возможно такой пользователь уже существует""")
+            return Response("""Данные не корректны""")
 
 
 class GetWorkingTokenAPIView(TokenObtainPairView):
     """Генерация оснокного ключа token с проверкой кода из письма."""
     def post(self, request):
-        user = get_object_or_404(User, username=request.data.get('username'))
+        try:
+            user = get_object_or_404(User, username=request.data.get('username'))
+        except Exception:
+            user = None
+            return Response('Запрашиваемый пользователь не существует')
         confirmation_code = request.data.get('confirmation_code')
         if default_token_generator.check_token(user, confirmation_code):
             token = RefreshToken.for_user(user)
             response = {}
             response['access_token'] = str(token.access_token)
             return Response(response)
-        return Response('токен не получишь')
+        return Response('Неверные данные для получения Token')
 
 
 class UsersViewSet(viewsets.ModelViewSet): #Через джинерики с изменением pk на username
