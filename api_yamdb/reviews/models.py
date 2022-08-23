@@ -2,11 +2,6 @@ from django.db import models
 
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-
-
-class TokenGenerator(PasswordResetTokenGenerator):
-    pass
 
 
 class User(AbstractUser):
@@ -22,7 +17,7 @@ class User(AbstractUser):
     role = models.CharField(choices=USER_STATUS, default='user', max_length=10)
     is_active = models.BooleanField(
         ('active'),
-        default=False,
+        default=True,
     )
 
 

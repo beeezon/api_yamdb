@@ -23,5 +23,4 @@ urlpatterns = [
     path('v1/', include(router_v1.urls)),
     path('v1/auth/signup/', GetUserAPIView.as_view()),
     path('v1/auth/token/', GetWorkingTokenAPIView.as_view()),
-    #path('v1/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
 ]

@@ -1,18 +1,17 @@
 import datetime as dt
 
+
 from reviews.models import User, Reviews, Comment, Categories, Genres, Titles
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 
 
-class ReceivingMainTokenSerializer(TokenObtainSerializer):
+class JwsTokenSerializer(serializers.Serializer):
     """Получение основнова токена для работы с сервисом."""
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields[self.username_field] = serializers.CharField()
-        del self.fields['password']
-        self.fields['confirmation_code'] = serializers.CharField()
+    username = serializers.CharField(max_length=256)
+    confirmation_code = serializers.CharField(max_length=512)
+
 
 
 class AuthorizationTokenSerializer(serializers.ModelSerializer):
@@ -27,8 +26,9 @@ class AuthorizationTokenSerializer(serializers.ModelSerializer):
 class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        fields = ('username', 'email', 'bio', 'last_name', 'first_name', 'role') # тут не все поля нужны
         model = User
+        
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
