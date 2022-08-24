@@ -12,12 +12,13 @@ class User(AbstractUser):
         ('admin', 'admin')
     ]
 
-    email = models.EmailField(max_length=254, blank=False)
+    email = models.EmailField(max_length=254, blank=False, unique=True)
     bio = models.CharField(max_length=150, blank=True)
     role = models.CharField(choices=USER_STATUS, default='user', max_length=10)
-    confirmation_code = models.CharField(
-        max_length=255, null=True, blank=False)
-
+    is_active = models.BooleanField(
+        ('active'),
+        default=True,
+    )
 
 class Categories(models.Model):
     name = models.CharField(max_length=200)
