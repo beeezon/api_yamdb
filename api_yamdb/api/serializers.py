@@ -23,12 +23,14 @@ class AuthorizationTokenSerializer(serializers.ModelSerializer):
         model = User
 
 
+
 class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('username', 'email', 'bio', 'last_name', 'first_name', 'role') # тут не все поля нужны
         model = User
         
+
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
