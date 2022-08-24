@@ -11,12 +11,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
-from .permissions import AuthorOrReadOnly, IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly
 from .serializers import (
     UsersSerializer, ReviewsSerializer, CommentsSerializer,
     CategoriesSerializer, GenresSerializer, TitlesSerializer,
     AuthorizationTokenSerializer, JwsTokenSerializer)
-
 
 
 class GetUserAPIView(APIView):
