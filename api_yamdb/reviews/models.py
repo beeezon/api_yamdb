@@ -31,21 +31,29 @@ class Reviews(models.Model):
     title_id = models.ForeignKey(
         Titles, 
         on_delete=models.CASCADE, 
-        related_name='titles')
+        related_name='reviews')
     text = models.TextField()
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
-    score = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(10.0)])
+    score = models.SmallIntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(10)])
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["title_id", "author"], name="unique_review"
+            ),
+        ]
 
 
-class Comment(models.Model):
+class Comments(models.Model):
     review_id = models.ForeignKey(
         Reviews, 
         on_delete=models.CASCADE, 
-        related_name='reviews')
+        related_name='comments')
     text = models.TextField()
     author = models.ForeignKey(
         User,

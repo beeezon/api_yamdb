@@ -7,9 +7,10 @@ app_name = 'api'
 router_v1 = DefaultRouter()
 router_v1.register(r'users', UsersViewSet)
 router_v1.register(
-    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments/', CommentsViewSet)
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments', CommentsViewSet, basename='comments')
+
 router_v1.register(
-    r'titles/(?P<title_id>\d+)/reviews/', ReviewsViewSet)
+    r'titles/(?P<title_id>\d+)/reviews/', ReviewsViewSet, basename='reviews')
 
 
 urlpatterns = [
