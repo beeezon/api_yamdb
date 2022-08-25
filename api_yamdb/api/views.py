@@ -3,7 +3,7 @@ from reviews.models import User, Reviews, Comments, Categories, Genres, Titles
 from rest_framework import filters, generics, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsAuthorAdminModerOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.mail import send_mail
@@ -80,8 +80,8 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
-    queryset = Comments.objects.all()
     serializer_class = CommentsSerializer
+    permission_classes = (IsAuthorAdminModerOrReadOnly,)
 
     def get_queryset(self):
         reviews= get_object_or_404(Reviews, pk=self.kwargs.get('review_id'))
