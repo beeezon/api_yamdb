@@ -20,6 +20,7 @@ class User(AbstractUser):
         default=True,
     )
 
+
 class Categories(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=20, unique=True)
@@ -44,6 +45,9 @@ class Titles(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name='titles')
+
+    def __str__(self):
+        return self.name
 
 
 class Reviews(models.Model):

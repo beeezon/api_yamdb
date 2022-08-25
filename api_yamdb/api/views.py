@@ -1,5 +1,5 @@
 from reviews.models import User, Reviews, Comment, Categories, Genres, Titles
-from rest_framework import filters, generics, viewsets
+from rest_framework import filters, generics, mixins, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
 from .permissions import IsAdminOrReadOnly
@@ -100,7 +100,7 @@ class GenresViewSet(viewsets.ModelViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    quesryset = Titles.objects.all()
+    queryset = Titles.objects.all()
     serializer_class = TitlesSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
