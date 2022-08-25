@@ -80,7 +80,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
+    queryset = Comments.objects.all()
     serializer_class = CommentsSerializer
 
     def get_queryset(self):

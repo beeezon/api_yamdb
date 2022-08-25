@@ -1,9 +1,8 @@
 import datetime as dt
 
 
-from reviews.models import User, Reviews, Comment, Categories, Genres, Titles
+from reviews.models import User, Reviews, Comments, Categories, Genres, Titles
 from rest_framework import serializers
-from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from reviews.models import Reviews,Comments
 
 
