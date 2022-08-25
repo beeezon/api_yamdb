@@ -1,30 +1,49 @@
 from django.db import models
+
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class User(AbstractUser):
-    moderator = models.BooleanField('Модератор', default=False)
-    email = models.EmailField('email адрес', unique=True)
+
+    USER_STATUS = [
+        ('user', 'user'),
+        ('moderator', 'moderator'),
+        ('admin', 'admin')
+    ]
+
+    email = models.EmailField(max_length=254, blank=False, unique=True)
+    bio = models.CharField(max_length=150, blank=True)
+    role = models.CharField(choices=USER_STATUS, default='user', max_length=10)
+    is_active = models.BooleanField(
+        ('active'),
+        default=True,
+    )
+
+class Categories(models.Model):
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=20, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
-class Category(models.Model):
-    name=models.CharField(max_length=200)
-    slug=models.SlugField(max_length=50, unique=True)
+class Genres(models.Model):
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=20, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Titles(models.Model):
     name = models.CharField(max_length=200)
     year = models.IntegerField()
     category = models.ForeignKey(
-        Category,
+        Categories,
         on_delete=models.SET_NULL,
         null=True,
         related_name='titles')
-
-class Genre(models.Model):
-    name=models.CharField(max_length=200)
-    slug=models.SlugField(max_length=50, unique=True)
 
 
 class Reviews(models.Model):
@@ -60,4 +79,3 @@ class Comments(models.Model):
         on_delete=models.CASCADE,
         related_name='comments')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
-
