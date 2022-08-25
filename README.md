@@ -1,9 +1,4 @@
 # api_yamdb
 api_yamdb
 
-sdf;msdf
-
-sflms;dfm
-
-
-sdfjqnqw
+Скоро напишем здесь что-нибудь
