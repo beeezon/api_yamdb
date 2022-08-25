@@ -1,4 +1,5 @@
-from reviews.models import User, Reviews, Comment, Categories, Genres, Titles
+from django.shortcuts import get_object_or_404
+from reviews.models import User, Reviews, Comments, Categories, Genres, Titles
 from rest_framework import filters, generics, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
@@ -81,6 +82,14 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 class CommentsViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentsSerializer
+
+    def get_queryset(self):
+        reviews= get_object_or_404(Reviews, pk=self.kwargs.get('review_id'))
+        return reviews.comments
+        
+    def perform_create(self, serializer):
+        reviews = get_object_or_404(Reviews, pk=self.kwargs.get('review_id'))
+        serializer.save(author=self.request.user, reviews=reviews)
 
 
 class CategoriesViewSet(viewsets.ModelViewSet):

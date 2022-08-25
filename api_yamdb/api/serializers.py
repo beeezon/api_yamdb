@@ -4,6 +4,7 @@ import datetime as dt
 from reviews.models import User, Reviews, Comment, Categories, Genres, Titles
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
+from reviews.models import Reviews,Comments
 
 
 class JwsTokenSerializer(serializers.Serializer):
@@ -23,7 +24,6 @@ class AuthorizationTokenSerializer(serializers.ModelSerializer):
         model = User
 
 
-
 class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -41,10 +41,13 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
 
 class CommentsSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(read_only=True,
+                                          slug_field='username')
 
     class Meta:
         fields = '__all__'
-        model = Comment
+        model = Comments
+        read_only_fields = ('review_id',)
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
