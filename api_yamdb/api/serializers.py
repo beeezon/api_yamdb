@@ -21,6 +21,7 @@ class AuthorizationTokenSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('email', 'username')
         model = User
+        #extra_kwargs = {'email': {'required': True}} 
 
 
 class UsersSerializer(serializers.ModelSerializer):

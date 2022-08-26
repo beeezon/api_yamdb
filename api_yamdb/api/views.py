@@ -1,3 +1,5 @@
+from django.http import HttpResponse
+from rest_framework import status
 from django.shortcuts import get_object_or_404
 from reviews.models import User, Reviews, Comments, Categories, Genres, Titles
 from rest_framework import filters, generics, viewsets
@@ -23,7 +25,9 @@ class GetUserAPIView(APIView):
     """"Отправка кода подтверждения на указанную электронную почту."""
     def post(self, request):
         serializer = AuthorizationTokenSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.initial_data.get('username') == 'me':
+            return Response('Невозможно получить Token', status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             user = get_object_or_404(
                 User, username=serializer.data.get('username'))
@@ -35,16 +39,15 @@ class GetUserAPIView(APIView):
                 [serializer.data.get('email')],
                 fail_silently=False,
             )
-            return Response("Письмо успешно отправлено")
-        else:
-            return Response("""Данные не корректны""")
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            #return Response("Письмо успешно отправлено")
 
 
 class GetWorkingTokenAPIView(TokenObtainPairView):
     """Генерация основного ключа token с проверкой кода из письма."""
     def post(self, request):
         serializers = JwsTokenSerializer(data=request.data)
-        if serializers.is_valid():
+        if serializers.is_valid(raise_exception=True):
             user = get_object_or_404(User, username=request.data.get('username'))
             confirmation_code = serializers.validated_data.get(
                 'confirmation_code'
@@ -54,8 +57,7 @@ class GetWorkingTokenAPIView(TokenObtainPairView):
                 response = {}
                 response['access_token'] = str(token.access_token)
                 return Response(response)
-            return Response('Неверные данные для получения Token')
-        return Response('Данные не корректны')
+            return Response('Невозможно получить Token', status=status.HTTP_400_BAD_REQUEST)
 
 
 class UsersViewSet(viewsets.ModelViewSet): #Через джинерики с изменением pk на username

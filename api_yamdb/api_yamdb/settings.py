@@ -1,4 +1,3 @@
-from email.message import EmailMessage
 import os
 from datetime import timedelta
 
@@ -24,7 +23,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    #'django_filters',    
     'api',
     'reviews',
     'rest_framework_simplejwt',
