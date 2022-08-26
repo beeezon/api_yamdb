@@ -1,11 +1,9 @@
-from django.http import HttpResponse
-from rest_framework import status
+from rest_framework import status, permissions, filters
 from django.shortcuts import get_object_or_404
 from reviews.models import User, Reviews, Comments, Categories, Genres, Titles
 from rest_framework import filters, generics, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
-from .permissions import IsAdminOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.mail import send_mail
@@ -14,7 +12,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsAuthenticated, IsAdminOrReadOnly, IsStaff
 from .serializers import (
     UsersSerializer, ReviewsSerializer, CommentsSerializer,
     CategoriesSerializer, GenresSerializer, TitlesSerializer,
@@ -63,15 +61,18 @@ class GetWorkingTokenAPIView(TokenObtainPairView):
 class UsersViewSet(viewsets.ModelViewSet): #Через джинерики с изменением pk на username
     queryset = User.objects.all()
     serializer_class = UsersSerializer
+    permission_classes = (IsAuthenticated, IsStaff)
+    filter_backends = (filters.SearchFilter, )
+    #pagination_class = None
+    search_fields = ('username',)
 
-    @action(detail=False, url_path='me', methods=['get', 'patch'], permission_classes=(IsAuthenticated,))
+    @action(detail=False, url_path='me', methods=['get', 'patch'],) #permission_classes=[IsAuthenticated, ] 
     def only_user(self, request):
         if request.method == 'PATCH':
             serializer = UsersSerializer(request.user, data=request.data, partial=True)
-            if serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response(serializer.data)
-            return Response('Данные не корректны')
         serializer = UsersSerializer(request.user)
         return Response(serializer.data)
 

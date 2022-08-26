@@ -9,10 +9,13 @@ class IsAdminOrReadOnly(permissions.BasePermission):
                 or request.user.is_superuser)
 
 
-class IsUserRestrictions(permissions.BasePermission):
+class IsAuthenticated(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        if request.method == ('PATCH' or 'PUT' or 'DELETE'):
-            return False
-        if request.user.is_authenticated:
-            pass
+        return (request.user.is_authenticated or request.user.is_superuser)
+
+
+class IsStaff(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return request.user.is_staff

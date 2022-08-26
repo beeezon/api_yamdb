@@ -3,7 +3,7 @@ import datetime as dt
 
 from reviews.models import User, Reviews, Comments, Categories, Genres, Titles
 from rest_framework import serializers
-from reviews.models import Reviews,Comments
+from reviews.models import Reviews, Comments
 
 
 class JwsTokenSerializer(serializers.Serializer):
