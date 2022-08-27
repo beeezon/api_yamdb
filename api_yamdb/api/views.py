@@ -1,9 +1,7 @@
-from django.shortcuts import get_object_or_404
-from reviews.models import User, Reviews, Comments, Categories, Genres, Titles
+from reviews.models import Users, Categories, Genres, Titles, Reviews
 from rest_framework import filters, generics, viewsets
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsAuthorAdminModerOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.mail import send_mail
@@ -26,7 +24,7 @@ class GetUserAPIView(APIView):
         if serializer.is_valid():
             serializer.save()
             user = get_object_or_404(
-                User, username=serializer.data.get('username'))
+                Users, username=serializer.data.get('username'))
             token_code = default_token_generator.make_token(user)
             send_mail(
                 'код активации',
@@ -45,7 +43,7 @@ class GetWorkingTokenAPIView(TokenObtainPairView):
     def post(self, request):
         serializers = JwsTokenSerializer(data=request.data)
         if serializers.is_valid():
-            user = get_object_or_404(User, username=request.data.get('username'))
+            user = get_object_or_404(Users, username=request.data.get('username'))
             confirmation_code = serializers.validated_data.get(
                 'confirmation_code'
                 )
@@ -59,7 +57,7 @@ class GetWorkingTokenAPIView(TokenObtainPairView):
 
 
 class UsersViewSet(viewsets.ModelViewSet): #Через джинерики с изменением pk на username
-    queryset = User.objects.all()
+    queryset = Users.objects.all()
     serializer_class = UsersSerializer
 
     @action(detail=False, url_path='me', methods=['get', 'patch'], permission_classes=(IsAuthenticated,))
@@ -75,21 +73,29 @@ class UsersViewSet(viewsets.ModelViewSet): #Через джинерики с и�
 
 
 class ReviewsViewSet(viewsets.ModelViewSet):
-    queryset = Reviews.objects.all()
     serializer_class = ReviewsSerializer
+    permission_classes = [IsAuthorAdminModerOrReadOnly]
+
+    def get_queryset(self):
+        title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        return title.reviews
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
-    queryset = Comments.objects.all()
     serializer_class = CommentsSerializer
+    permission_classes = [IsAuthorAdminModerOrReadOnly]
 
     def get_queryset(self):
-        reviews= get_object_or_404(Reviews, pk=self.kwargs.get('review_id'))
-        return reviews.comments
-        
+        review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
+        return review.comments
+
     def perform_create(self, serializer):
-        reviews = get_object_or_404(Reviews, pk=self.kwargs.get('review_id'))
-        serializer.save(author=self.request.user, reviews=reviews)
+        review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
+        serializer.save(author=self.request.user, review=review)
 
 
 class CategoriesViewSet(viewsets.ModelViewSet):
@@ -113,4 +119,3 @@ class TitlesViewSet(viewsets.ModelViewSet):
     serializer_class = TitlesSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)

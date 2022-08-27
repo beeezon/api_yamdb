@@ -1,4 +1,3 @@
-from email.message import EmailMessage
 import os
 from datetime import timedelta
 
@@ -112,7 +111,7 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 # Default auto field is added since Django is complaining about it whilst migrating
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-AUTH_USER_MODEL = 'reviews.User'
+AUTH_USER_MODEL = 'reviews.Users'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication',],
