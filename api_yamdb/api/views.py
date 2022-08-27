@@ -1,3 +1,6 @@
+
+from rest_framework import status, permissions, filters
+from django.shortcuts import get_object_or_404
 from reviews.models import Users, Categories, Genres, Titles, Reviews
 from rest_framework import filters, generics, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAuthenticated
@@ -10,7 +13,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
-from .permissions import IsAdminOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsAuthenticated, IsAdminOrReadOnly, IsStaff
 from .serializers import (
     UsersSerializer, ReviewsSerializer, CommentsSerializer,
     CategoriesSerializer, GenresSerializer, TitlesSerializer,
@@ -21,7 +24,9 @@ class GetUserAPIView(APIView):
     """"Отправка кода подтверждения на указанную электронную почту."""
     def post(self, request):
         serializer = AuthorizationTokenSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.initial_data.get('username') == 'me':
+            return Response('Невозможно получить Token', status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             user = get_object_or_404(
                 Users, username=serializer.data.get('username'))
@@ -33,17 +38,16 @@ class GetUserAPIView(APIView):
                 [serializer.data.get('email')],
                 fail_silently=False,
             )
-            return Response("Письмо успешно отправлено")
-        else:
-            return Response("""Данные не корректны""")
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            #return Response("Письмо успешно отправлено")
 
 
 class GetWorkingTokenAPIView(TokenObtainPairView):
     """Генерация основного ключа token с проверкой кода из письма."""
     def post(self, request):
         serializers = JwsTokenSerializer(data=request.data)
-        if serializers.is_valid():
-            user = get_object_or_404(Users, username=request.data.get('username'))
+        if serializers.is_valid(raise_exception=True):
+            user = get_object_or_404(User, username=request.data.get('username'))
             confirmation_code = serializers.validated_data.get(
                 'confirmation_code'
                 )
@@ -52,22 +56,23 @@ class GetWorkingTokenAPIView(TokenObtainPairView):
                 response = {}
                 response['access_token'] = str(token.access_token)
                 return Response(response)
-            return Response('Неверные данные для получения Token')
-        return Response('Данные не корректны')
+            return Response('Невозможно получить Token', status=status.HTTP_400_BAD_REQUEST)
 
 
 class UsersViewSet(viewsets.ModelViewSet): #Через джинерики с изменением pk на username
     queryset = Users.objects.all()
     serializer_class = UsersSerializer
+    permission_classes = (IsAuthenticated, IsStaff)
+    #filter_backends = (filters.SearchFilter, )
+    search_fields = ('username',)
 
-    @action(detail=False, url_path='me', methods=['get', 'patch'], permission_classes=(IsAuthenticated,))
+    @action(detail=False, url_path='me', methods=['get', 'patch'],) #permission_classes=[IsAuthenticated, ] 
     def only_user(self, request):
         if request.method == 'PATCH':
             serializer = UsersSerializer(request.user, data=request.data, partial=True)
-            if serializer.is_valid():
+            if serializer.is_valid(raise_exception=True):
                 serializer.save()
                 return Response(serializer.data)
-            return Response('Данные не корректны')
         serializer = UsersSerializer(request.user)
         return Response(serializer.data)
 

@@ -3,7 +3,7 @@ import datetime as dt
 
 from reviews.models import Users, Categories, Genres, Titles
 from rest_framework import serializers
-from reviews.models import Reviews,Comments
+from reviews.models import Reviews, Comments
 
 
 class JwsTokenSerializer(serializers.Serializer):
@@ -20,6 +20,7 @@ class AuthorizationTokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('email', 'username')
+        #extra_kwargs = {'email': {'required': True}} 
         model = Users
 
 
