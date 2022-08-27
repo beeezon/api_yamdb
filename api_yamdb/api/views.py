@@ -3,8 +3,6 @@ from rest_framework import status, filters
 from django.shortcuts import get_object_or_404
 from reviews.models import Users, Categories, Genres, Titles, Reviews
 from rest_framework import filters, viewsets
-from rest_framework.permissions import IsAuthenticated
-from .permissions import IsAdminOrReadOnly, IsAuthorAdminModerOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.mail import send_mail
@@ -13,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
-from .permissions import IsAdminOrReadOnly, IsAuthenticated, IsAdminOrReadOnly, IsStaff
+from .permissions import IsAdminOrReadOnly, IsAdminOrReadOnly, UserPermission, IsAuthorAdminModerOrReadOnly
 from .serializers import (
     UsersSerializer, ReviewsSerializer, CommentsSerializer,
     CategoriesSerializer, GenresSerializer, TitlesSerializer,
@@ -66,7 +64,8 @@ class GetWorkingTokenAPIView(TokenObtainPairView):
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = (IsAuthenticated, IsAuthorAdminModerOrReadOnly,)
+    permission_classes = (UserPermission,)
+    print(permission_classes)
     search_fields = ('username',)
 
 
