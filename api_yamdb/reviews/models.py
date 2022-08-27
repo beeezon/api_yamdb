@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
-class User(AbstractUser):
+class Users(AbstractUser):
 
     USER_STATUS = [
         ('user', 'user'),
@@ -45,6 +45,12 @@ class Titles(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         related_name='titles')
+    genre = models.ManyToManyField(
+        Genres,
+        related_name="titles",
+        blank=True,
+        verbose_name="Жанр произведения",
+    )
 
 
 class Reviews(models.Model):
@@ -54,7 +60,7 @@ class Reviews(models.Model):
         related_name='reviews')
     text = models.TextField()
     author = models.ForeignKey(
-        User,
+        Users,
         on_delete=models.CASCADE,
         related_name='reviews')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
@@ -76,7 +82,13 @@ class Comments(models.Model):
         related_name='comments')
     text = models.TextField()
     author = models.ForeignKey(
-        User,
+        Users,
         on_delete=models.CASCADE,
         related_name='comments')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+
+    class Meta:
+        ordering = ["-pub_date"]
+    
+    def __str__(self):
+        return self.text

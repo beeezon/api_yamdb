@@ -1,7 +1,7 @@
 import datetime as dt
 
 
-from reviews.models import User, Reviews, Comments, Categories, Genres, Titles
+from reviews.models import Users, Categories, Genres, Titles
 from rest_framework import serializers
 from reviews.models import Reviews, Comments
 
@@ -20,15 +20,15 @@ class AuthorizationTokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('email', 'username')
-        model = User
         #extra_kwargs = {'email': {'required': True}} 
+        model = Users
 
 
 class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('username', 'email', 'bio', 'last_name', 'first_name', 'role') # тут не все поля нужны
-        model = User
+        model = Users
         
 
 
@@ -41,8 +41,9 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
 
 class CommentsSerializer(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(read_only=True,
-                                          slug_field='username')
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
 
     class Meta:
         fields = '__all__'
