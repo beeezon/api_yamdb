@@ -62,8 +62,7 @@ class UsersViewSet(viewsets.ModelViewSet): #Через джинерики с и�
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = (IsAuthenticated, IsStaff)
-    filter_backends = (filters.SearchFilter, )
-    #pagination_class = None
+    #filter_backends = (filters.SearchFilter, )
     search_fields = ('username',)
 
     @action(detail=False, url_path='me', methods=['get', 'patch'],) #permission_classes=[IsAuthenticated, ] 
