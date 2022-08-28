@@ -18,16 +18,20 @@ class AuthorizationTokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('email', 'username')
-        #extra_kwargs = {'email': {'required': True}} 
         model = Users
 
 
 class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('username', 'email', 'bio', 'last_name', 'first_name', 'role')
+        fields = ('username',
+                  'email',
+                  'bio',
+                  'last_name',
+                  'first_name',
+                  'role')
         model = Users
-        #read_only_fields = ('role', )
+        lookup_field = 'username'
 
 
 class ReviewsSerializer(serializers.ModelSerializer):

@@ -12,12 +12,17 @@ class IsAdminOrReadOnly(permissions.BasePermission):
 class IsAuthorAdminModerOrReadOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        # return (request.method in permissions.SAFE_METHODS
-        #         or request.user.is_authenticated)
-        return (request.method == ('GET') and request.user.role == 'admin' or 
-        request.method == ('PATCH') and request.user.is_authenticated)
-        # return (request.method in permissions.SAFE_METHODS
-        #         or request.user.is_authenticated)
+        return (request.method in permissions.SAFE_METHODS
+                or request.user.is_authenticated)
+
+    def has_object_permission(self, request, view, obj):
+        return (request.method in permissions.SAFE_METHODS
+                or (obj.author == request.user
+                    or (request.user.is_authenticated
+                        and (request.user.is_moder
+                             or request.user.is_superuser))
+                    )
+                )
 
 
 class UserMePermission(permissions.BasePermission):
@@ -29,22 +34,17 @@ class UserMePermission(permissions.BasePermission):
         return False
 
 
-class AnonimPermission(permissions.BasePermission):
-
-    def has_permission(self, request, view):
-        pass
-
-
 class UserPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         if request.user.is_authenticated:
             if request.user.role == 'admin' or request.user.is_superuser:
                 return True
-        return False
-
-    def has_object_permission(self, request, view, obj):
-        LIMITED_METHODS = ['PUT', 'PATCH', 'DELETE']
-        if request.method in LIMITED_METHODS and request.user == obj.author:
-            return True
+            elif request.method == 'GET' and request.user.role != 'admin':
+                return False
+            elif (request.method == 'GET' or 'PATCH'
+                  and request.user.role == 'admin'):
+                return True
+            elif request.method == 'DELETE' and request.user.is_superuser:
+                return True
         return False
