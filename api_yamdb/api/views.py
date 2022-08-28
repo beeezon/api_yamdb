@@ -11,7 +11,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
-from .permissions import IsAdminOrReadOnly, IsAdminOrReadOnly, UserPermission, IsAuthorAdminModerOrReadOnly
+from .permissions import (UserMePermission, 
+                          IsAdminOrReadOnly, 
+                          IsAdminOrReadOnly, 
+                          UserPermission, 
+                          IsAuthorAdminModerOrReadOnly)
 from .serializers import (
     UsersSerializer, ReviewsSerializer, CommentsSerializer,
     CategoriesSerializer, GenresSerializer, TitlesSerializer,
@@ -64,12 +68,10 @@ class GetWorkingTokenAPIView(TokenObtainPairView):
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = (UserPermission,)
-    print(permission_classes)
+    permission_classes = (UserPermission, )
     search_fields = ('username',)
 
-
-    @action(detail=False, url_path='me', methods=['get', 'patch'],) #permission_classes=[IsAuthenticated, IsAuthorAdminModerOrReadOnly]
+    @action(detail=False, url_path='me', methods=['get', 'patch'], permission_classes=[UserMePermission, ]) #
     def only_user(self, request):
         if request.method == 'PATCH':
             serializer = UsersSerializer(
@@ -92,7 +94,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewsSerializer
-    permission_classes = [IsAuthorAdminModerOrReadOnly]
+    permission_classes = [IsAuthorAdminModerOrReadOnly,]
 
     def get_queryset(self):
         title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
@@ -105,7 +107,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
-    permission_classes = [IsAuthorAdminModerOrReadOnly]
+    permission_classes = [IsAuthorAdminModerOrReadOnly,]
 
     def get_queryset(self):
         review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))

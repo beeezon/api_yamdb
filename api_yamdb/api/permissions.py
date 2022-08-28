@@ -20,6 +20,15 @@ class IsAuthorAdminModerOrReadOnly(permissions.BasePermission):
         #         or request.user.is_authenticated)
 
 
+class UserMePermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            if request.method == 'PATCH' or 'GET':
+                return True
+        return False
+
+
 class AnonimPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
@@ -29,17 +38,13 @@ class AnonimPermission(permissions.BasePermission):
 class UserPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated
+        if request.user.is_authenticated:
+            if request.user.role == 'admin' or request.user.is_superuser:
+                return True
+        return False
 
     def has_object_permission(self, request, view, obj):
-        PETMITTED_METHODS = ['GET', 'POST']
         LIMITED_METHODS = ['PUT', 'PATCH', 'DELETE']
-
         if request.method in LIMITED_METHODS and request.user == obj.author:
             return True
-        elif request.method in PETMITTED_METHODS:
-            return True
-        elif request.user.role == 'admin' or 'moderator':
-            return True
-        else:
-            return False
+        return False
