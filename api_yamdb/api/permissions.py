@@ -9,30 +9,42 @@ class IsAdminOrReadOnly(permissions.BasePermission):
                 or request.user.is_superuser)
 
 
-class IsAuthenticated(permissions.BasePermission):
-
-    def has_permission(self, request, view):
-        return (request.user.is_authenticated or request.user.is_superuser)
-
-
-class IsStaff(permissions.BasePermission):
-
-    def has_permission(self, request, view):
-        #return request.user.is_staff
-        if request.method == ('PATCH' or 'PUT' or 'DELETE'):
-            return False
-        if request.user.is_authenticated:
-            pass
 class IsAuthorAdminModerOrReadOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        return (request.method in permissions.SAFE_METHODS
-                or request.user.is_authenticated)
+        # return (request.method in permissions.SAFE_METHODS
+        #         or request.user.is_authenticated)
+        return (request.method == ('GET') and request.user.role == 'admin' or 
+        request.method == ('PATCH') and request.user.is_authenticated)
+        # return (request.method in permissions.SAFE_METHODS
+        #         or request.user.is_authenticated)
+
+
+class UserMePermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            if request.method == 'PATCH' or 'GET':
+                return True
+        return False
+
+
+class AnonimPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        pass
+
+
+class UserPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        if request.user.is_authenticated:
+            if request.user.role == 'admin' or request.user.is_superuser:
+                return True
+        return False
 
     def has_object_permission(self, request, view, obj):
-        return (request.method in permissions.SAFE_METHODS
-                or (obj.author == request.user
-                    or (request.user.is_authenticated
-                        and (request.user.is_moder or request.user.is_superuser))
-                    )
-                )
+        LIMITED_METHODS = ['PUT', 'PATCH', 'DELETE']
+        if request.method in LIMITED_METHODS and request.user == obj.author:
+            return True
+        return False

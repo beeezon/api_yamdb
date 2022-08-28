@@ -1,6 +1,5 @@
 import datetime as dt
 
-
 from reviews.models import Users, Categories, Genres, Titles
 from rest_framework import serializers
 from reviews.models import Reviews, Comments
@@ -11,7 +10,6 @@ class JwsTokenSerializer(serializers.Serializer):
 
     username = serializers.CharField(max_length=256)
     confirmation_code = serializers.CharField(max_length=512)
-
 
 
 class AuthorizationTokenSerializer(serializers.ModelSerializer):
@@ -27,10 +25,9 @@ class AuthorizationTokenSerializer(serializers.ModelSerializer):
 class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ('username', 'email', 'bio', 'last_name', 'first_name', 'role') # тут не все поля нужны
+        fields = ('username', 'email', 'bio', 'last_name', 'first_name', 'role')
         model = Users
-        
-
+        #read_only_fields = ('role', )
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
