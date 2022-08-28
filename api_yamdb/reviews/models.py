@@ -55,8 +55,8 @@ class Titles(models.Model):
 
 class Reviews(models.Model):
     title_id = models.ForeignKey(
-        Titles, 
-        on_delete=models.CASCADE, 
+        Titles,
+        on_delete=models.CASCADE,
         related_name='reviews')
     text = models.TextField()
     author = models.ForeignKey(
@@ -77,8 +77,8 @@ class Reviews(models.Model):
 
 class Comments(models.Model):
     review_id = models.ForeignKey(
-        Reviews, 
-        on_delete=models.CASCADE, 
+        Reviews,
+        on_delete=models.CASCADE,
         related_name='comments')
     text = models.TextField()
     author = models.ForeignKey(
@@ -89,6 +89,6 @@ class Comments(models.Model):
 
     class Meta:
         ordering = ["-pub_date"]
-    
+
     def __str__(self):
         return self.text
