@@ -150,6 +150,7 @@ class Test04TitleAPI:
     def test_03_titles_detail(self, client, admin_client):
         titles, categories, genres = create_titles(admin_client)
         response = client.get(f'/api/v1/titles/{titles[0]["id"]}/')
+        print(response)
         assert response.status_code != 404, (
             'Страница `/api/v1/titles/{title_id}/` не найдена, проверьте этот адрес в *urls.py*'
         )
@@ -232,6 +233,7 @@ class Test04TitleAPI:
         data = {'name': 'Чудо юдо', 'year': 1999, 'genre': [genres[2]['slug'], genres[1]['slug']],
                 'category': categories[0]['slug'], 'description': 'Бум'}
         response = client.post('/api/v1/titles/', data=data)
+        print(response)
         assert response.status_code == 401, (
             'Проверьте, что при POST запросе `/api/v1/titles/` '
             'без токена авторизации возвращается статус 401'
