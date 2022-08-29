@@ -23,7 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'django_filters',
+    #'django_filters',
     'api',
     'reviews',
     'rest_framework_simplejwt',
@@ -111,7 +111,7 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 # Default auto field is added since Django is complaining about it whilst migrating
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-AUTH_USER_MODEL = 'reviews.Users'
+AUTH_USER_MODEL = 'reviews.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication',],
@@ -119,7 +119,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5,
+    'PAGE_SIZE': 10,
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
