@@ -2,7 +2,7 @@
 from rest_framework import status, filters
 from django.shortcuts import get_object_or_404
 from reviews.models import Users, Categories, Genres, Titles, Reviews
-from rest_framework import filters, viewsets
+from rest_framework import filters, viewsets, mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.mail import send_mail
@@ -15,11 +15,16 @@ from .permissions import (UserMePermission,
                           IsAdminOrReadOnly,
                           IsAdminOrReadOnly,
                           UserPermission,
-                          IsAuthorAdminModerOrReadOnly)
+                          IsAuthorAdminModerOrReadOnly,)
 from .serializers import (
     UsersSerializer, ReviewsSerializer, CommentsSerializer,
     CategoriesSerializer, GenresSerializer, TitlesSerializer,
     AuthorizationTokenSerializer, JwsTokenSerializer)
+
+
+class GetPostDeleteViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
+                           mixins.ListModelMixin, viewsets.GenericViewSet):
+    pass
 
 
 class GetUserAPIView(APIView):
@@ -122,20 +127,22 @@ class CommentsViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class CategoriesViewSet(viewsets.ModelViewSet):
+class CategoriesViewSet(GetPostDeleteViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
-class GenresViewSet(viewsets.ModelViewSet):
+class GenresViewSet(GetPostDeleteViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenresSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
