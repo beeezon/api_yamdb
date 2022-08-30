@@ -1,3 +1,4 @@
+
 from django.db import models
 
 from django.contrib.auth.models import AbstractUser
@@ -19,6 +20,11 @@ class Users(AbstractUser):
         ('active'),
         default=True,
     )
+    username = models.CharField(
+        max_length=50,
+        null=True,
+        unique=True
+    )
 
 
     @property
@@ -31,6 +37,7 @@ class Users(AbstractUser):
 
     class Meta:
         ordering = ['-id']
+        verbose_name = 'Пользователь'
 
 
 class Categories(models.Model):
@@ -41,7 +48,8 @@ class Categories(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['name']
+        verbose_name = 'Категория'
 
 
 class Genres(models.Model):
@@ -51,30 +59,45 @@ class Genres(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Жанр'
+
 
 class Titles(models.Model):
-    name = models.CharField(max_length=200)
-    year = models.IntegerField()
-    description = models.TextField()
+    name = models.CharField(max_length=200, verbose_name='Наименование')
+    year = models.IntegerField(verbose_name='Год выпуска')
+    description = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name='Описание'
+    )
     category = models.ForeignKey(
         Categories,
         on_delete=models.SET_NULL,
         related_name="titles",
         blank=True,
         null=True,
+        verbose_name='Категория'
     )
     genre = models.ManyToManyField(
         Genres,
         related_name="titles",
         blank=True,
-        verbose_name="Жанр произведения",
+        verbose_name='Жанр',
     )
-
-    class Meta:
-        ordering = ['-id']
+    score = models.PositiveIntegerField(
+        null=True,
+        default=None,
+        verbose_name='Рейтинг'
+    )
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Произведение'
 
 
 class Reviews(models.Model):

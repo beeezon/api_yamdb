@@ -94,7 +94,7 @@ class SlugGenresSerializer(serializers.SlugRelatedField):
 
 class TitlesSerializer(serializers.ModelSerializer):
     category = SlugCategorySerializer(
-        slug_field='slug', 
+        slug_field='slug',
         queryset=Categories.objects.all(),
         required=False
     )
@@ -111,5 +111,6 @@ class TitlesSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Titles
+        lookup_field = 'slug'
 
 
