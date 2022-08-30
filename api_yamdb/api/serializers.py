@@ -1,5 +1,5 @@
 import datetime as dt
-
+from django.shortcuts import get_object_or_404
 from reviews.models import Users, Categories, Genres, Titles
 from rest_framework import serializers
 from reviews.models import Reviews, Comments
@@ -35,10 +35,24 @@ class UsersSerializer(serializers.ModelSerializer):
 
 
 class ReviewsSerializer(serializers.ModelSerializer):
-
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
     class Meta:
         fields = '__all__'
         model = Reviews
+        read_only_fields = ('title',)
+
+    def validate(self, data):
+        title_id = self.context['view'].kwargs.get('title_id')
+        author = self.context.get('request').user
+        title = get_object_or_404(Titles, id=title_id)
+        if (title.reviews.filter(author=author).exists()
+           and self.context.get('request').method != 'PATCH'):
+            raise serializers.ValidationError(
+                'Можно оставлять только один отзыв!'
+            )
+        return data
 
 
 class CommentsSerializer(serializers.ModelSerializer):
@@ -59,30 +73,43 @@ class CategoriesSerializer(serializers.ModelSerializer):
         model = Categories
         lookup_field = 'slug'
 
+
+
+class SlugCategorySerializer(serializers.SlugRelatedField):
+    def to_representation(self, instance):
+        return CategoriesSerializer(instance).data
+
+
 class GenresSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        exclude = ('id',)
         lookup_field = 'slug'
         model = Genres
 
+class SlugGenresSerializer(serializers.SlugRelatedField):
+    def to_representation(self, instance):
+        return GenresSerializer(instance).data
+
 
 class TitlesSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
-        slug_field='slug', many=True, queryset=Categories.objects.all()
+    category = SlugCategorySerializer(
+        slug_field='slug', 
+        queryset=Categories.objects.all(),
+        required=False
     )
-
+    genre = SlugGenresSerializer(
+        slug_field='slug',
+        queryset=Genres.objects.all(),
+        many=True,
+    )
+    rating = serializers.IntegerField(
+        source='Reviews__score__avg',
+        read_only=True
+    )
+    
     class Meta:
         fields = '__all__'
-        lookup_field = 'category'
         model = Titles
 
-    def validate(self, data):
-        if dt.datetime().year < data.year:
-            raise serializers.ValidationError(
-                '''
-                Путешествия в будущее запрещены!
-                Год создения произведения не может быть позже текущего!
-                '''
-            )
-        return data
+
