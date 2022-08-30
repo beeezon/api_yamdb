@@ -51,25 +51,30 @@ class Genres(models.Model):
     def __str__(self):
         return self.name
 
-    class Meta:
-        ordering = ['-id']
-
 
 class Titles(models.Model):
     name = models.CharField(max_length=200)
     year = models.IntegerField()
+    description = models.TextField()
     category = models.ForeignKey(
         Categories,
         on_delete=models.SET_NULL,
-        null=True,
+        related_name="titles",
         blank=True,
-        related_name='titles')
+        null=True,
+    )
     genre = models.ManyToManyField(
         Genres,
         related_name="titles",
         blank=True,
         verbose_name="Жанр произведения",
     )
+
+    class Meta:
+        ordering = ['-id']
+
+    def __str__(self):
+        return self.name
 
 
 class Reviews(models.Model):
@@ -93,6 +98,8 @@ class Reviews(models.Model):
             ),
         ]
 
+    def __str__(self):
+        return self.name
 
 class Comments(models.Model):
     review_id = models.ForeignKey(

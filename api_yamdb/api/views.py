@@ -1,6 +1,5 @@
 
 from rest_framework import status, filters
-from django.shortcuts import get_object_or_404
 from reviews.models import Users, Categories, Genres, Titles, Reviews
 from rest_framework import filters, viewsets, mixins
 from rest_framework.views import APIView
@@ -107,7 +106,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
-        return title.reviews
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
@@ -120,7 +119,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
-        return review.comments
+        return review.comments.all()
 
     def perform_create(self, serializer):
         review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
@@ -146,7 +145,7 @@ class GenresViewSet(GetPostDeleteViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    quesryset = Titles.objects.all()
+    queryset = Titles.objects.all()
     serializer_class = TitlesSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
