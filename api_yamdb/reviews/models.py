@@ -3,6 +3,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+from .validators import current_year_validator
+
 
 class Users(AbstractUser):
 
@@ -19,7 +21,6 @@ class Users(AbstractUser):
         ('active'),
         default=True,
     )
-
 
     @property
     def is_admin(self):
@@ -41,7 +42,8 @@ class Categories(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['name']
+        verbose_name = 'Категория'
 
 
 class Genres(models.Model):
@@ -52,24 +54,54 @@ class Genres(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['name']
+        verbose_name = 'Жанр'
 
 
 class Titles(models.Model):
-    name = models.CharField(max_length=200)
-    year = models.IntegerField()
+    name = models.CharField(
+        max_length=200, verbose_name='Наменование')
+    year = models.IntegerField(
+        verbose_name='Год выпуска', validators=[current_year_validator])
+    description = models.TextField(
+        verbose_name='Описание',
+        null=True,
+        blank=True
+    )
     category = models.ForeignKey(
         Categories,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
         related_name='titles')
     genre = models.ManyToManyField(
         Genres,
         related_name="titles",
-        blank=True,
         verbose_name="Жанр произведения",
     )
+    rating = models.PositiveIntegerField(
+        verbose_name='Рейтинг',
+        null=True
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = 'Название'
+        ordering = ['name']
+
+
+class GenresTitles(models.Model):
+    title = models.ForeignKey(
+        Titles, verbose_name='Название', on_delete=models.CASCADE)    
+    genre = models.ForeignKey(
+        Genres, verbose_name='Жанр', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.genre, self.title
+
+    class Meta:
+        verbose_name = 'Жанр и название'
 
 
 class Reviews(models.Model):

@@ -49,7 +49,6 @@ class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Comments
-        read_only_fields = ('review_id',)
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
@@ -58,6 +57,7 @@ class CategoriesSerializer(serializers.ModelSerializer):
         fields = ('name', 'slug',)
         model = Categories
         lookup_field = 'slug'
+
 
 class GenresSerializer(serializers.ModelSerializer):
 
@@ -71,18 +71,11 @@ class TitlesSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Categories.objects.all()
     )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug', queryset=Genres.objects.all()
+    )
 
     class Meta:
         fields = '__all__'
         lookup_field = 'category'
         model = Titles
-
-    def validate(self, data):
-        if dt.datetime().year < data.year:
-            raise serializers.ValidationError(
-                '''
-                Путешествия в будущее запрещены!
-                Год создения произведения не может быть позже текущего!
-                '''
-            )
-        return data
