@@ -14,15 +14,14 @@ class Command(BaseCommand):
         return file_path
 
     def add_arguments(self, parser):
-        parser.add_argument("direction", type=str, help="Укажите имя файла файла")
-        parser.add_argument('model_name', type=str, help="Укажите имя модели")
-        parser.add_argument('app_name', type=str, help="Укажите имя прилжоения")
-
+        parser.add_argument("direction", type=str, help="Имя файла")
+        parser.add_argument('model_name', type=str, help="Имя модели")
+        parser.add_argument('app_name', type=str, help="Имя приложения")
 
     def handle(self, *args, **options):
         direction = options["direction"]
-        file_path = self.get_csv_file(direction) # Путь до файла
-        _model = apps.get_model(options['app_name'], options['model_name']) # Получил модель
+        file_path = self.get_csv_file(direction)
+        _model = apps.get_model(options['app_name'], options['model_name'])
         with io.open(file_path, encoding='utf-8') as csv_file:
             data = csv.reader(csv_file, delimiter=',', quotechar='|')
             header = next(data)
@@ -30,6 +29,6 @@ class Command(BaseCommand):
                 _object_dict = {key: value for key, value in zip(header, row)}
                 _model.objects.get_or_create(**_object_dict)
                 self.stdout.write(self.style.SUCCESS(
-                    f"Загрузка данных из {options['direction']} в модель {options['model_name']} произведена успешно"
+                    f"Загрузка данных из {options['direction']}"
+                    f"в модель {options['model_name']} произведена успешно"
                 ))
-

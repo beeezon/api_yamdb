@@ -20,7 +20,6 @@ class Users(AbstractUser):
         default=True,
     )
 
-
     @property
     def is_admin(self):
         return self.is_superuser or self.role == "admin" or self.is_staff
@@ -98,6 +97,7 @@ class Reviews(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Comments(models.Model):
     review_id = models.ForeignKey(

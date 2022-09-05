@@ -1,4 +1,3 @@
-import datetime as dt
 from django.shortcuts import get_object_or_404
 from reviews.models import Users, Categories, Genres, Titles
 from rest_framework import serializers
@@ -38,10 +37,11 @@ class ReviewsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
+
     class Meta:
         fields = '__all__'
         model = Reviews
-        read_only_fields = ('title',)
+        read_only_fields = ('title_id',)
 
     def validate(self, data):
         title_id = self.context['request'].parser_context['kwargs']['title_id']
@@ -54,6 +54,10 @@ class ReviewsSerializer(serializers.ModelSerializer):
             )
         return data
 
+    def validate_rating(self, value):
+        if value < 1 or value > 10:
+            raise serializers.ValidationError('Рейтинг может быть от 1 до 10.')
+        return value
 
 
 class CommentsSerializer(serializers.ModelSerializer):
@@ -75,7 +79,6 @@ class CategoriesSerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-
 class SlugCategorySerializer(serializers.SlugRelatedField):
     def to_representation(self, instance):
         return CategoriesSerializer(instance).data
@@ -89,7 +92,6 @@ class GenresSerializer(serializers.ModelSerializer):
         model = Genres
 
 
-
 class SlugGenresSerializer(serializers.SlugRelatedField):
     def to_representation(self, instance):
         return GenresSerializer(instance).data
@@ -97,7 +99,7 @@ class SlugGenresSerializer(serializers.SlugRelatedField):
 
 class TitlesSerializer(serializers.ModelSerializer):
     category = SlugCategorySerializer(
-        slug_field='slug', 
+        slug_field='slug',
         queryset=Categories.objects.all(),
         required=False
     )
@@ -107,12 +109,10 @@ class TitlesSerializer(serializers.ModelSerializer):
         many=True,
     )
     rating = serializers.IntegerField(
-        source='Reviews__score__avg',
+        source='reviews__score__avg',
         read_only=True
     )
-    
+
     class Meta:
         fields = '__all__'
         model = Titles
-
-
