@@ -91,12 +91,6 @@ class Reviews(models.Model):
     score = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(10)])
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["title_id", "author"], name="unique_review"
-            ),
-        ]
 
     def __str__(self):
         return self.name
