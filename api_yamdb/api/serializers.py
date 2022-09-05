@@ -44,7 +44,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
         read_only_fields = ('title',)
 
     def validate(self, data):
-        title_id = self.context['view'].kwargs.get('title_id')
+        title_id = self.context['request'].parser_context['kwargs']['title_id']
         author = self.context.get('request').user
         title = get_object_or_404(Titles, id=title_id)
         if (title.reviews.filter(author=author).exists()
@@ -53,6 +53,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
                 'Можно оставлять только один отзыв!'
             )
         return data
+
 
 
 class CommentsSerializer(serializers.ModelSerializer):
@@ -86,6 +87,8 @@ class GenresSerializer(serializers.ModelSerializer):
         exclude = ('id',)
         lookup_field = 'slug'
         model = Genres
+
+
 
 class SlugGenresSerializer(serializers.SlugRelatedField):
     def to_representation(self, instance):

@@ -40,9 +40,6 @@ class Categories(models.Model):
     def __str__(self):
         return self.name
 
-    class Meta:
-        ordering = ['-id']
-
 
 class Genres(models.Model):
     name = models.CharField(max_length=200)
@@ -92,10 +89,11 @@ class Reviews(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(10)])
 
     class Meta:
+        ordering = ["-pub_date"]
         constraints = [
             models.UniqueConstraint(
-                fields=["title_id", "author"], name="unique_review"
-            ),
+                fields=["author", "title_id"], name="unique_review"
+            )
         ]
 
     def __str__(self):
