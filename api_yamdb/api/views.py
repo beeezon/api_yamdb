@@ -1,4 +1,4 @@
-
+from django.db.models import Avg
 from rest_framework import status, filters
 from reviews.models import Users, Categories, Genres, Titles, Reviews
 from rest_framework import filters, viewsets, mixins
@@ -110,7 +110,7 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user, title=title)
+        serializer.save(author=self.request.user, title_id=title)
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
@@ -123,7 +123,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
-        serializer.save(author=self.request.user, review=review)
+        serializer.save(author=self.request.user, review_id=review)
 
 
 class CategoriesViewSet(GetPostDeleteViewSet):
@@ -145,7 +145,8 @@ class GenresViewSet(GetPostDeleteViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all()
+    queryset = Titles.objects.all().annotate(
+        Avg('reviews__score'))
     serializer_class = TitlesSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
