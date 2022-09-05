@@ -55,6 +55,7 @@ class ReviewsSerializer(serializers.ModelSerializer):
         return data
 
 
+
 class CommentsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
