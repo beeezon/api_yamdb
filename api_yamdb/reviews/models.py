@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+from .validators import year_validation
 
 class Users(AbstractUser):
 
@@ -13,24 +14,22 @@ class Users(AbstractUser):
     ]
 
     email = models.EmailField(max_length=254, blank=False, unique=True)
-    bio = models.CharField(max_length=150, blank=True)
+    bio = models.CharField(max_length=150, blank=True, null=True)
     role = models.CharField(choices=USER_STATUS, default='user', max_length=10)
-    is_active = models.BooleanField(
-        ('active'),
-        default=True,
-    )
-
 
     @property
     def is_admin(self):
-        return self.is_superuser or self.role == "admin" or self.is_staff
+        return self.role == "admin"
 
     @property
     def is_moder(self):
         return self.role == 'moderator'
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ('username',)
+
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
 
 
 class Categories(models.Model):
@@ -41,7 +40,7 @@ class Categories(models.Model):
         return self.name
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['name']
 
 
 class Genres(models.Model):
@@ -51,10 +50,13 @@ class Genres(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ['name']
+
 
 class Titles(models.Model):
     name = models.CharField(max_length=200)
-    year = models.IntegerField()
+    year = models.IntegerField(validators=[year_validation])
     description = models.TextField()
     category = models.ForeignKey(
         Categories,
@@ -69,37 +71,54 @@ class Titles(models.Model):
         blank=True,
         verbose_name="Жанр произведения",
     )
-
-    class Meta:
-        ordering = ['-id']
+    rating = models.IntegerField(null=True)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ['name']
+
+
+class GenresTitles(models.Model):
+    title = models.ForeignKey(
+        Titles,
+        on_delete=models.CASCADE
+    )
+    genre = models.ForeignKey(
+        Genres,
+        on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return self.title, self.genre
 
 
 class Reviews(models.Model):
     title_id = models.ForeignKey(
         Titles,
         on_delete=models.CASCADE,
-        related_name='reviews')
+        related_name='reviews',
+    )
     text = models.TextField()
     author = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
-        related_name='reviews')
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+        related_name='reviews',
+    )
+    pub_date = models.DateTimeField(verbose_name='Дата публикации', auto_now_add=True, db_index = True)
     score = models.SmallIntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(10)])
+        validators=[MinValueValidator(1), MaxValueValidator(10)])
 
     class Meta:
+        ordering = ('pub_date',)
         constraints = [
             models.UniqueConstraint(
-                fields=["title_id", "author"], name="unique_review"
+                fields=['title_id', 'author'],
+                name='unique_review'
             ),
         ]
 
-    def __str__(self):
-        return self.name
 
 class Comments(models.Model):
     review_id = models.ForeignKey(
@@ -111,10 +130,7 @@ class Comments(models.Model):
         Users,
         on_delete=models.CASCADE,
         related_name='comments')
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    pub_date = models.DateTimeField(verbose_name='Дата публикации', auto_now_add=True, db_index=True)
 
     class Meta:
-        ordering = ["-pub_date"]
-
-    def __str__(self):
-        return self.text
+        ordering = ["pub_date"]

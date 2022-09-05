@@ -4,8 +4,11 @@ from reviews.models import Users, Categories, Genres, Titles, Reviews
 from rest_framework import filters, viewsets, mixins
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
+from django.db.models import Avg
+
 from django.shortcuts import get_object_or_404
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -14,11 +17,14 @@ from .permissions import (UserMePermission,
                           IsAdminOrReadOnly,
                           IsAdminOrReadOnly,
                           UserPermission,
-                          IsAuthorAdminModerOrReadOnly,)
+                          IsAuthorAdminModerOrReadOnly,
+                          AdminPermission)
 from .serializers import (
     UsersSerializer, ReviewsSerializer, CommentsSerializer,
     CategoriesSerializer, GenresSerializer, TitlesSerializer,
-    AuthorizationTokenSerializer, JwsTokenSerializer)
+    AuthorizationTokenSerializer, JwsTokenSerializer, RatingsTitlesSerializer,
+    UsersPatchSerializer)
+
 
 
 class GetPostDeleteViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
@@ -72,14 +78,15 @@ class GetWorkingTokenAPIView(TokenObtainPairView):
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = Users.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = (UserPermission, )
+    permission_classes = [AdminPermission]
     search_fields = ('username',)
     lookup_field = 'username'
 
     @action(detail=False,
             url_path='me',
             methods=['get', 'patch'],
-            permission_classes=[UserMePermission, ])
+            permission_classes=[IsAuthenticated],
+            serializer_class=UsersPatchSerializer,)
     def only_user(self, request):
         if request.method == 'PATCH':
             serializer = UsersSerializer(
@@ -102,7 +109,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 class ReviewsViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewsSerializer
-    permission_classes = [IsAuthorAdminModerOrReadOnly, ]
+    permission_classes = [IsAuthorAdminModerOrReadOnly]
 
     def get_queryset(self):
         title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
@@ -115,14 +122,16 @@ class ReviewsViewSet(viewsets.ModelViewSet):
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
-    permission_classes = [IsAuthorAdminModerOrReadOnly, ]
+    permission_classes = [IsAuthorAdminModerOrReadOnly]
 
     def get_queryset(self):
         review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
         return review.comments.all()
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
+        review = get_object_or_404(
+            Reviews,
+            id=self.kwargs.get('review_id')),
         serializer.save(author=self.request.user, review=review)
 
 
@@ -145,7 +154,13 @@ class GenresViewSet(GetPostDeleteViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all()
+    queryset = Titles.objects.all().order_by('name').annotate(Avg('reviews__score'))
     serializer_class = TitlesSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
+    filter_fields = ('genre',)
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return RatingsTitlesSerializer
+        return TitlesSerializer

@@ -1,8 +1,8 @@
-import datetime as dt
+from email.policy import default
 from django.shortcuts import get_object_or_404
-from reviews.models import Users, Categories, Genres, Titles
+from reviews.models import Users, Categories, Genres, Titles, Reviews, Comments
 from rest_framework import serializers
-from reviews.models import Reviews, Comments
+from rest_framework.validators import UniqueValidator
 
 
 class JwsTokenSerializer(serializers.Serializer):
@@ -22,6 +22,14 @@ class AuthorizationTokenSerializer(serializers.ModelSerializer):
 
 
 class UsersSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        validators=[UniqueValidator(queryset=Users.objects.all())],
+        required=True,
+    )
+    email = serializers.EmailField(
+        validators=[UniqueValidator(queryset=Users.objects.all())],
+        required=True,
+    )
 
     class Meta:
         fields = ('username',
@@ -33,29 +41,43 @@ class UsersSerializer(serializers.ModelSerializer):
         model = Users
         lookup_field = 'username'
 
+class UsersPatchSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ('username',
+                  'email',
+                  'bio',
+                  'last_name',
+                  'first_name',
+                  'role')
+        model = Users
+        read_only_fields = ('role',)
 
 class ReviewsSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
-    class Meta:
-        fields = '__all__'
-        model = Reviews
-        read_only_fields = ('title',)
 
     def validate(self, data):
         title_id = self.context['view'].kwargs.get('title_id')
         author = self.context.get('request').user
-        title = get_object_or_404(Titles, id=title_id)
-        if (title.reviews.filter(author=author).exists()
-           and self.context.get('request').method != 'PATCH'):
+        title = get_object_or_404(Titles, pk=title_id)
+        if (Reviews.objects.filter(title=title, author=author).exists()
+           and self.context.get('request').method == 'POST'):
             raise serializers.ValidationError(
                 'Можно оставлять только один отзыв!'
             )
         return data
 
+    class Meta:
+        fields = '__all__'
+        model = Reviews
+        read_only_fields = ('id',)
+
 
 class CommentsSerializer(serializers.ModelSerializer):
+    review = serializers.SlugRelatedField(
+        read_only=True, slug_field='text'
+    )
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
@@ -63,7 +85,7 @@ class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Comments
-        read_only_fields = ('review_id',)
+        read_only_fields = ('id',)
 
 
 class CategoriesSerializer(serializers.ModelSerializer):
@@ -93,23 +115,27 @@ class SlugGenresSerializer(serializers.SlugRelatedField):
 
 
 class TitlesSerializer(serializers.ModelSerializer):
-    category = SlugCategorySerializer(
-        slug_field='slug', 
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
         queryset=Categories.objects.all(),
-        required=False
     )
-    genre = SlugGenresSerializer(
+    genre = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Genres.objects.all(),
         many=True,
     )
-    rating = serializers.IntegerField(
-        source='Reviews__score__avg',
-        read_only=True
-    )
-    
+
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
         model = Titles
 
 
+class RatingsTitlesSerializer(serializers.ModelSerializer):
+    category = CategoriesSerializer(many=False)
+    genre = GenresSerializer(many=True)
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True)
+
+    class Meta:
+        model = Titles,
+        fields = '__all__'
