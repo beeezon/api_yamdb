@@ -111,7 +111,7 @@ STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 # Default auto field is added since Django is complaining about it whilst migrating
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-AUTH_USER_MODEL = 'reviews.Users'
+AUTH_USER_MODEL = 'reviews.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication', ],

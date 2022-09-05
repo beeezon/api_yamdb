@@ -1,24 +1,23 @@
-from django.db.models import Avg
-from rest_framework import status, filters
-from reviews.models import Users, Categories, Genres, Titles, Reviews
-from rest_framework import filters, viewsets, mixins
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
-from .permissions import (UserMePermission,
-                          IsAdminOrReadOnly,
-                          IsAdminOrReadOnly,
-                          UserPermission,
-                          IsAuthorAdminModerOrReadOnly,)
-from .serializers import (
-    UsersSerializer, ReviewsSerializer, CommentsSerializer,
-    CategoriesSerializer, GenresSerializer, TitlesSerializer,
-    AuthorizationTokenSerializer, JwsTokenSerializer)
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+from reviews.models import Category, Genre, Review, Title, User
+from .filters import TitleFilter
+from .permissions import (IsAdminOrReadOnly, IsAuthorAdminModerOrReadOnly,
+                          UserMePermission, UserPermission)
+from .serializers import (AuthorizationTokenSerializer, CategoriesSerializer,
+                          CommentsSerializer, GenresSerializer,
+                          JwsTokenSerializer, ReviewsSerializer,
+                          TitlesSerializer, UsersSerializer)
 
 
 class GetPostDeleteViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
@@ -37,7 +36,7 @@ class GetUserAPIView(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             user = get_object_or_404(
-                Users, username=serializer.data.get('username'))
+                User, username=serializer.data.get('username'))
             token_code = default_token_generator.make_token(user)
             send_mail(
                 'код активации',
@@ -55,7 +54,7 @@ class GetWorkingTokenAPIView(TokenObtainPairView):
         serializers = JwsTokenSerializer(data=request.data)
         if serializers.is_valid(raise_exception=True):
             user = get_object_or_404(
-                Users,
+                User,
                 username=request.data.get('username'))
             confirmation_code = serializers.validated_data.get(
                 'confirmation_code')
@@ -70,7 +69,7 @@ class GetWorkingTokenAPIView(TokenObtainPairView):
 
 
 class UsersViewSet(viewsets.ModelViewSet):
-    queryset = Users.objects.all()
+    queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = (UserPermission, )
     search_fields = ('username',)
@@ -105,12 +104,12 @@ class ReviewsViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorAdminModerOrReadOnly, ]
 
     def get_queryset(self):
-        title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
+        title = get_object_or_404(Title, id=self.kwargs.get('title'))
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        title = get_object_or_404(Titles, id=self.kwargs.get('title_id'))
-        serializer.save(author=self.request.user, title_id=title)
+        title = get_object_or_404(Title, id=self.kwargs.get('title'))
+        serializer.save(author=self.request.user, title=title)
 
 
 class CommentsViewSet(viewsets.ModelViewSet):
@@ -118,16 +117,16 @@ class CommentsViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthorAdminModerOrReadOnly, ]
 
     def get_queryset(self):
-        review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
         return review.comments.all()
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Reviews, id=self.kwargs.get('review_id'))
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
         serializer.save(author=self.request.user, review_id=review)
 
 
 class CategoriesViewSet(GetPostDeleteViewSet):
-    queryset = Categories.objects.all()
+    queryset = Category.objects.all()
     serializer_class = CategoriesSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
@@ -136,7 +135,7 @@ class CategoriesViewSet(GetPostDeleteViewSet):
 
 
 class GenresViewSet(GetPostDeleteViewSet):
-    queryset = Genres.objects.all()
+    queryset = Genre.objects.all()
     serializer_class = GenresSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
@@ -145,8 +144,9 @@ class GenresViewSet(GetPostDeleteViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Titles.objects.all().annotate(
-        Avg('reviews__score'))
+    queryset = Title.objects.all().annotate(
+        Avg('reviews__score')).order_by('name')
     serializer_class = TitlesSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
