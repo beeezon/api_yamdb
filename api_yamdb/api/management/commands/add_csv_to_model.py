@@ -1,6 +1,7 @@
 import csv
-import os
 import io
+import os
+
 from django.apps import apps
 from django.contrib.staticfiles import finders
 from django.core.management.base import BaseCommand

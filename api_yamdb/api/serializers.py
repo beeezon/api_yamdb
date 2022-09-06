@@ -1,7 +1,6 @@
 from django.shortcuts import get_object_or_404
-from reviews.models import Users, Categories, Genres, Titles
 from rest_framework import serializers
-from reviews.models import Reviews, Comments
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class JwsTokenSerializer(serializers.Serializer):
@@ -17,7 +16,7 @@ class AuthorizationTokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('email', 'username')
-        model = Users
+        model = User
 
 
 class UsersSerializer(serializers.ModelSerializer):
@@ -29,7 +28,7 @@ class UsersSerializer(serializers.ModelSerializer):
                   'last_name',
                   'first_name',
                   'role')
-        model = Users
+        model = User
         lookup_field = 'username'
 
 
@@ -40,13 +39,13 @@ class ReviewsSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
-        model = Reviews
-        read_only_fields = ('title_id',)
+        model = Review
+        read_only_fields = ('title',)
 
     def validate(self, data):
-        title_id = self.context['request'].parser_context['kwargs']['title_id']
+        title = self.context['request'].parser_context['kwargs']['title']
         author = self.context.get('request').user
-        title = get_object_or_404(Titles, id=title_id)
+        title = get_object_or_404(Title, id=title)
         if (title.reviews.filter(author=author).exists()
            and self.context.get('request').method != 'PATCH'):
             raise serializers.ValidationError(
@@ -67,7 +66,7 @@ class CommentsSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
-        model = Comments
+        model = Comment
         read_only_fields = ('review_id',)
 
 
@@ -75,7 +74,7 @@ class CategoriesSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('name', 'slug',)
-        model = Categories
+        model = Category
         lookup_field = 'slug'
 
 
@@ -89,7 +88,7 @@ class GenresSerializer(serializers.ModelSerializer):
     class Meta:
         exclude = ('id',)
         lookup_field = 'slug'
-        model = Genres
+        model = Genre
 
 
 class SlugGenresSerializer(serializers.SlugRelatedField):
@@ -100,12 +99,12 @@ class SlugGenresSerializer(serializers.SlugRelatedField):
 class TitlesSerializer(serializers.ModelSerializer):
     category = SlugCategorySerializer(
         slug_field='slug',
-        queryset=Categories.objects.all(),
+        queryset=Category.objects.all(),
         required=False
     )
     genre = SlugGenresSerializer(
         slug_field='slug',
-        queryset=Genres.objects.all(),
+        queryset=Genre.objects.all(),
         many=True,
     )
     rating = serializers.IntegerField(
@@ -115,4 +114,4 @@ class TitlesSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
-        model = Titles
+        model = Title
