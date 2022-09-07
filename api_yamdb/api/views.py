@@ -1,3 +1,4 @@
+import email
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
@@ -12,16 +13,24 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from reviews.models import Category, Genre, Review, Title, User
 from .filters import TitleFilter
-from .permissions import (IsAdminOrReadOnly, IsAuthorAdminModerOrReadOnly,
-                          UserMePermission, UserPermission)
-from .serializers import (AuthorizationTokenSerializer, CategoriesSerializer,
-                          CommentsSerializer, GenresSerializer,
-                          JwsTokenSerializer, ReviewsSerializer,
-                          TitlesSerializer, UsersSerializer)
+from .permissions import (IsAdminOrReadOnly,
+                          IsAuthorAdminModerOrReadOnly,
+                          UserMePermission,
+                          UserPermission)
+from .serializers import (AuthorizationTokenSerializer,
+                          CategoriesSerializer,
+                          CommentsSerializer,
+                          GenresSerializer,
+                          JwsTokenSerializer,
+                          ReviewsSerializer,
+                          TitlesSerializer,
+                          UsersSerializer)
 
 
-class GetPostDeleteViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
-                           mixins.ListModelMixin, viewsets.GenericViewSet):
+class GetPostDeleteViewSet(mixins.CreateModelMixin,
+                           mixins.DestroyModelMixin,
+                           mixins.ListModelMixin,
+                           viewsets.GenericViewSet):
     pass
 
 
@@ -34,17 +43,21 @@ class GetUserAPIView(APIView):
                 'Невозможно получить Token',
                 status=status.HTTP_400_BAD_REQUEST)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            user = get_object_or_404(
-                User, username=serializer.data.get('username'))
-            token_code = default_token_generator.make_token(user)
-            send_mail(
-                'код активации',
-                f'Вы получили код авторизации {token_code}',
-                'admin@django.com',
-                [serializer.data.get('email')],
-                fail_silently=False,
-            )
+            user, created = User.objects.get_or_create(username=serializer.data.get('username'))
+            print(user)
+            print(created)
+            ###
+            ###serializer.save()
+            #user = get_object_or_404(
+            #    User, username=serializer.data.get('username'))
+            #token_code = default_token_generator.make_token(user)
+            # send_mail(
+            #     'код активации',
+            #     f'Вы получили код авторизации {token_code}',
+            #     'admin@django.com',
+            #     [serializer.data.get('email')],
+            #     fail_silently=False,
+            # )
             return Response(serializer.data, status=status.HTTP_200_OK)
 
 

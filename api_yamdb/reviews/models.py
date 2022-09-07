@@ -4,11 +4,14 @@ from django.db import models
 
 
 class User(AbstractUser):
+    ROLE_USER = 'user'
+    ROLE_MODERATOR = 'moderator'
+    ROLE_ADMIN = 'admin'
 
     USER_STATUS = [
-        ('user', 'user'),
-        ('moderator', 'moderator'),
-        ('admin', 'admin')
+        (ROLE_USER, ROLE_USER),
+        (ROLE_MODERATOR, ROLE_MODERATOR),
+        (ROLE_ADMIN, ROLE_ADMIN)
     ]
 
     email = models.EmailField(max_length=254, blank=False, unique=True)
@@ -28,6 +31,7 @@ class User(AbstractUser):
         return self.role == 'moderator'
 
     class Meta:
+        verbose_name = 'Пользователи'
         ordering = ['-id']
 
 
@@ -35,11 +39,12 @@ class Category(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
 
+    class Meta:
+        verbose_name = 'Категории'
+        ordering = ['name']
+
     def __str__(self):
         return self.name
-
-    class Meta:
-        ordering = ['name']
 
 
 class Genre(models.Model):
@@ -50,6 +55,7 @@ class Genre(models.Model):
         return self.name
 
     class Meta:
+        verbose_name = 'Жанры произведений'
         ordering = ['name']
 
 
@@ -74,6 +80,9 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'Произведения'
+
 
 class Review(models.Model):
     title = models.ForeignKey(
@@ -90,6 +99,7 @@ class Review(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(10)])
 
     class Meta:
+        verbose_name = 'Отзывы'
         ordering = ["-pub_date"]
         constraints = [
             models.UniqueConstraint(
@@ -111,6 +121,7 @@ class Comment(models.Model):
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     class Meta:
+        verbose_name = 'Комментарии'
         ordering = ["-pub_date"]
 
     def __str__(self):
