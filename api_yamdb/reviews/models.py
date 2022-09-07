@@ -1,3 +1,4 @@
+from tabnanny import verbose
 from django.db import models
 
 from django.contrib.auth.models import AbstractUser
@@ -74,7 +75,7 @@ class Titles(models.Model):
 
 
 class CommentReview(models.Model):
-    text = models.TextField()
+    text = models.TextField(verbose_name = 'Текст ревью или коммента')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
 
@@ -82,12 +83,15 @@ class Reviews(CommentReview):
     title_id = models.ForeignKey(
         Titles,
         on_delete=models.CASCADE,
+        verbose_name = 'Отзыв',
         related_name='reviews')
     author = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
+        verbose_name = 'Отзыв пользователя',
         related_name='reviews')
     score = models.SmallIntegerField(
+        verbose_name = 'Оценка',
         validators=[MinValueValidator(0), MaxValueValidator(10)])
 
     class Meta:
@@ -106,9 +110,11 @@ class Comments(CommentReview):
     review_id = models.ForeignKey(
         Reviews,
         on_delete=models.CASCADE,
+        verbose_name = 'Комментарий',
         related_name='comments')
     author = models.ForeignKey(
         Users,
+        verbose_name = 'Комментарий пользователя',
         on_delete=models.CASCADE,
         related_name='comments')
 
