@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from .validators import year_validation
+
 
 class User(AbstractUser):
 
@@ -31,31 +33,32 @@ class User(AbstractUser):
         ordering = ['-id']
 
 
-class Category(models.Model):
+class CategoryGenre(models.Model):
     name = models.CharField(max_length=256)
     slug = models.SlugField(max_length=50, unique=True)
 
+
+class Category(CategoryGenre):
+
+    class Meta:
+        ordering = ['-name']
+
     def __str__(self):
-        return self.name
+        return self.name.truncate(15)
+
+
+class Genre(CategoryGenre):
 
     class Meta:
         ordering = ['name']
 
-
-class Genre(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=20, unique=True)
-
     def __str__(self):
         return self.name
-
-    class Meta:
-        ordering = ['name']
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=200)
-    year = models.IntegerField()
+    name = models.TextField()
+    year = models.IntegerField(validators=[year_validation])
     description = models.TextField()
     category = models.ForeignKey(
         Category,
