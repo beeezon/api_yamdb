@@ -15,10 +15,14 @@ from .permissions import (UserMePermission,
                           IsAdminOrReadOnly,
                           UserPermission,
                           IsAuthorAdminModerOrReadOnly,)
-from .serializers import (
-    UsersSerializer, ReviewsSerializer, CommentsSerializer,
-    CategoriesSerializer, GenresSerializer, TitlesSerializer,
-    AuthorizationTokenSerializer, JwsTokenSerializer)
+from .serializers import (UsersSerializer,
+                        ReviewsSerializer, 
+                        CommentsSerializer,
+                        CategoriesSerializer,
+                        GenresSerializer,
+                        TitlesSerializer,
+                        AuthorizationTokenSerializer,
+                        JwsTokenSerializer)
 
 
 class GetPostDeleteViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,

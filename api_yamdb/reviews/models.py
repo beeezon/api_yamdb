@@ -73,17 +73,20 @@ class Titles(models.Model):
         return self.name
 
 
-class Reviews(models.Model):
+class CommentReview(models.Model):
+    text = models.TextField()
+    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+
+
+class Reviews(CommentReview):
     title_id = models.ForeignKey(
         Titles,
         on_delete=models.CASCADE,
         related_name='reviews')
-    text = models.TextField()
     author = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
         related_name='reviews')
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
     score = models.SmallIntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(10)])
 
@@ -91,7 +94,7 @@ class Reviews(models.Model):
         ordering = ["-pub_date"]
         constraints = [
             models.UniqueConstraint(
-                fields=["author", "title_id"], name="unique_review"
+                fields=["author", "title_id"], name="unique_titile_author"
             )
         ]
 
@@ -99,17 +102,15 @@ class Reviews(models.Model):
         return self.name
 
 
-class Comments(models.Model):
+class Comments(CommentReview):
     review_id = models.ForeignKey(
         Reviews,
         on_delete=models.CASCADE,
         related_name='comments')
-    text = models.TextField()
     author = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
         related_name='comments')
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     class Meta:
         ordering = ["-pub_date"]
