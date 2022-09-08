@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from django.db.models import Q
 
 from reviews.models import Category, Genre, Review, Title, User
 from .filters import TitleFilter
@@ -42,23 +43,26 @@ class GetUserAPIView(APIView):
             return Response(
                 'Невозможно получить Token',
                 status=status.HTTP_400_BAD_REQUEST)
-        if serializer.is_valid(raise_exception=True):
-            user, created = User.objects.get_or_create(username=serializer.data.get('username'))
-            print(user)
-            print(created)
-            ###
-            ###serializer.save()
-            #user = get_object_or_404(
-            #    User, username=serializer.data.get('username'))
-            #token_code = default_token_generator.make_token(user)
-            # send_mail(
-            #     'код активации',
-            #     f'Вы получили код авторизации {token_code}',
-            #     'admin@django.com',
-            #     [serializer.data.get('email')],
-            #     fail_silently=False,
-            # )
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        #if serializer.is_valid(raise_exception=True):
+        serializer.is_valid()
+        user, created = User.objects.get_or_create(
+            username=serializer.validated_data.get('username'),
+            email=serializer.validated_data.get('email'))
+        print(user)
+        print(created)
+        ###
+        ###serializer.save()
+        #user = get_object_or_404(
+        #    User, username=serializer.data.get('username'))
+        token_code = default_token_generator.make_token(user)
+        send_mail(
+            'код активации',
+            f'Вы получили код авторизации {token_code}',
+            'admin@django.com',
+            [serializer.data.get('email')],
+            fail_silently=False,
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class GetWorkingTokenAPIView(TokenObtainPairView):
