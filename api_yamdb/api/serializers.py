@@ -10,13 +10,12 @@ class JwsTokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField(max_length=512)
 
 
-class AuthorizationTokenSerializer(serializers.ModelSerializer):
+class AuthorizationTokenSerializer(serializers.Serializer):
     """Генерация и получение токена,
     отправляемого в письме пользователю при регистрации."""
 
-    class Meta:
-        fields = ('email', 'username')
-        model = User
+    username = serializers.CharField(max_length=256)
+    email = serializers.EmailField(max_length=254)
 
 
 class UsersSerializer(serializers.ModelSerializer):
