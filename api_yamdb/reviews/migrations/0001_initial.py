@@ -8,7 +8,6 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
 
-
 class Migration(migrations.Migration):
 
     initial = True
@@ -32,6 +31,7 @@ class Migration(migrations.Migration):
         ),
         migrations.CreateModel(
             name='CommentReview',
+
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('text', models.TextField()),
@@ -39,11 +39,12 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Genre',
+            name='Title',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('slug', models.SlugField(max_length=20, unique=True)),
+                ('name', models.TextField()),
+                ('year', models.IntegerField(validators=[reviews.validators.year_validation])),
+                ('description', models.TextField()),
             ],
             options={
                 'verbose_name': 'Жанры произведений',
@@ -51,16 +52,12 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Title',
+            name='Category',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('year', models.IntegerField()),
-                ('description', models.TextField()),
-                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='titles', to='reviews.Category')),
-                ('genre', models.ManyToManyField(blank=True, related_name='titles', to='reviews.Genre', verbose_name='Жанр произведения')),
+                ('categorygenre_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='reviews.CategoryGenre')),
             ],
             options={
+
                 'verbose_name': 'Произведения',
             },
         ),
@@ -90,6 +87,7 @@ class Migration(migrations.Migration):
             managers=[
                 ('objects', django.contrib.auth.models.UserManager()),
             ],
+
         ),
         migrations.CreateModel(
             name='Review',
@@ -117,6 +115,16 @@ class Migration(migrations.Migration):
                 'ordering': ['-pub_date'],
             },
             bases=('reviews.commentreview',),
+        ),
+        migrations.AddField(
+            model_name='title',
+            name='category',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='titles', to='reviews.Category'),
+        ),
+        migrations.AddField(
+            model_name='title',
+            name='genre',
+            field=models.ManyToManyField(blank=True, related_name='titles', to='reviews.Genre', verbose_name='Жанр произведения'),
         ),
         migrations.AddConstraint(
             model_name='review',
